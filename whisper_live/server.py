@@ -330,12 +330,12 @@ class TranscriptionServer:
         """
         if not self.vad_detector(frame_np):
             self.no_voice_activity_chunks += 1
-            if self.no_voice_activity_chunks > 3:
+            if self.no_voice_activity_chunks > 10 : #3 #I increased this from 3 to 10 and it seems to be getting fewer double answers
                 client = self.client_manager.get_client(websocket)
                 if not client.eos:
                     logging.info("No voice activity detected. Setting EOS flag.")
                     client.set_eos(True)
-                time.sleep(0.1)    # Sleep 100m; wait some voice activity.
+                time.sleep(0.1)    # Sleep 100m; wait some voice activity.  #erik
             return False
         return True
 
@@ -496,6 +496,7 @@ class ServeClientBase(object):
             segments (list): A list of transcription segments to be sent to the client.
         """
         try:
+            print(f"segments: {segments} is final:{self.eos}") #ERIK
             self.websocket.send(
                 json.dumps({
                     "uid": self.client_uid,
@@ -907,7 +908,7 @@ class ServeClientFasterWhisper(ServeClientBase):
 
                 if result is None or self.language is None:
                     self.timestamp_offset += duration
-                    time.sleep(0.25)    # wait for voice activity, result is None when no voice activity
+                    time.sleep(0.15)    # wait for voice activity, result is None when no voice activity #ERIK 0.25
                     continue
                 self.handle_transcription_output(result, duration)
 
